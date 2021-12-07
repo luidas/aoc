@@ -28,3 +28,5 @@ for day in 0 .. days:
       age_bins[age] = age_bins[age+1]
     age_bins[max_age] = num_newborns
     age_bins[max_age-2] += num_newborns
+
+
