@@ -1,32 +1,24 @@
 import os
+import std/setutils
 import std/strutils
-import std/sequtils
 
-func group_by_4(box_groups: seq[string], box: char): seq[string] =
-   if box_groups[^1].len < 4:
-      result = box_groups[0..^2] & @[box_groups[^1]&box]
-   else:
-      result = box_groups & @[""&box]
+const marker_size = 14
 
-func transpose_row(columns: seq[seq[char]], row: seq[char]): seq[seq[char]] =
-   result = zip(columns, row).mapIt(it[0] & @[it[1]])
+func match_packet(signal: string): int =
+   for index in 0..signal.len - marker_size:
+      let marker = signal[index..index+marker_size-1]
+      if marker.toSet().len == marker_size:
+         return index+marker_size
+   return 1
 
 let
    input = readFile(paramStr(1)).split("\n")[0..^2]
-   separator = input.find("")
-   boxes = input[0..separator-2].mapIt(it.foldl(group_by_4(a, b), @[""]).mapIt(
-         it[1]))
-   moves = input[separator+1..^1]
-      .mapIt(it.split(' '))
-      .mapIt(@[it[1], it[3], it[5]].map(parseInt))
-      .mapIt((it[0], it[1]-1, it[2]-1))
 
-var stacks = boxes.foldl(transpose_row(a, b), repeat(newSeq[char](), boxes[
-      1].len)).mapIt(it.filterIt(it != ' '))
+echo match_packet(input[0])
 
-for move in moves:
-   var to_move = stacks[move[1]][0..move[0]-1]
-   stacks[move[2]] = to_move & stacks[move[2]]
-   stacks[move[1]] = stacks[move[1]][move[0]..^1]
-
-echo stacks.mapIt(""&it[0]).foldl(a & b)
+when isMainModule:
+   doAssert match_packet("mjqjpqmgbljsphdztnvjfqwrcgsmlb") == 19
+   doAssert match_packet("bvwbjplbgvbhsrlpgdmjqwftvncz") == 23
+   doAssert match_packet("nppdvjthqldpwncqszvftbrmjlhg") == 23
+   doAssert match_packet("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg") == 29
+   doAssert match_packet("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw") == 26
